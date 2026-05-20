@@ -1,0 +1,652 @@
+{
+  "name": "job api - ia",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        0
+      ],
+      "id": "184927cd-b8d0-4b51-8a8e-f69eb5cd96c5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openwebninja.com/jsearch/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "data engineer"
+            },
+            {
+              "name": "employment_types",
+              "value": "CONTRACTOR"
+            },
+            {
+              "name": "job_requirements",
+              "value": "under_3_years_experience"
+            },
+            {
+              "name": "work_from_home",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -256,
+        208
+      ],
+      "id": "e2731d9e-9b71-4ab8-946a-59f98e08e49f",
+      "name": "Data Engineer jobs",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wgzroouq0WDga7hi",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openwebninja.com/jsearch/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "automation engineer"
+            },
+            {
+              "name": "employment_types",
+              "value": "CONTRACTOR"
+            },
+            {
+              "name": "job_requirements",
+              "value": "under_3_years_experience"
+            },
+            {
+              "name": "work_from_home",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -256,
+        -208
+      ],
+      "id": "375999e6-8a3e-426c-93d0-0d2095f1f3c9",
+      "name": "Automation Engineer jobs",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wgzroouq0WDga7hi",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Requesting data from jobs",
+        "height": 624,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -256
+      ],
+      "id": "47b94edc-81fc-400a-9006-8cc1ddd4febc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "5c76d516-b161-4001-b98d-7a8c91bbecbc",
+      "name": "Merging jobs data"
+    },
+    {
+      "parameters": {
+        "content": "## Preparing data for AI task\n\n",
+        "height": 352,
+        "width": 1124,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -128
+      ],
+      "id": "f33ec4bb-0a8c-49c2-bf2b-67ca0464883b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n  const jobs = item.json.data || [];\n\n  for (const job of jobs) {\n    output.push({\n      job_id: job.job_id,\n      title: job.job_title,\n      company: job.employer_name,\n      description: job.job_description,\n      location: job.job_location,\n      apply_link: job.job_apply_link,\n      is_remote: job.job_is_remote,\n      salary_min: job.job_min_salary,\n      salary_max: job.job_max_salary,\n      posted: job.job_posted_at_datetime_utc,\n      source: item.json.parameters?.query || \"unknown\"\n    });\n  }\n}\n\nreturn output.map(j => ({ json: j }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "ec62343d-8fb6-4782-bdc2-6df8bffedf61",
+      "name": "Cleaning job data"
+    },
+    {
+      "parameters": {
+        "content": "## Running score task\n",
+        "height": 384,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        -160
+      ],
+      "id": "7f2ec05a-880a-4335-88be-f84ce98bf901",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a technical recruiter and career matching expert.\n\nYour task is to evaluate how well a job matches a candidate’s CV and return a structured scoring result.\n\nYou MUST be strict, objective, and data-driven. Do not guess missing CV information. Only use what is provided.\n\n---\n\n### 📄 CANDIDATE CV\n{{ $json.cv_summary }}\n\n---\n\n### 💼 JOB POSTING\nTitle: {{ $json.title }}\nCompany: {{ $json.company }}\nLocation: {{ $json.location }}\nSource: {{ $json.source }}\nJob ID: {{ $json.job_id }}\n\nDescription:\n{{ $json.description }}\n\n---\n\n## 🎯 TASK\n\nAnalyze the job and compare it against the candidate CV.\n\nEvaluate the match based on:\n\n1. Technical skills match (0–40)\n2. Experience level fit (0–25)\n3. Domain/industry relevance (0–15)\n4. Tools & technologies overlap (0–10)\n\n---\n\n## 📊 OUTPUT FORMAT (IMPORTANT)\n\nReturn ONLY valid JSON. No explanations. No markdown.\n\n```json\n{\n  \"job_id\": \"\",\n  \"title\": \"\",\n  \"company\": \"\",\n  \"total_score\": 0,\n  \"breakdown\": {\n    \"skills\": 0,\n    \"experience\": 0,\n    \"domain\": 0,\n    \"tools\": 0,\n    \"location\": 0\n  },\n  \"match_level\": \"low | medium | high\",\n  \"strengths\": [],\n  \"gaps\": [],\n  \"recommendation\": \"reject | consider | strong_match\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1312,
+        -16
+      ],
+      "id": "9fe6dd4f-8493-4a55-81b6-cfeef8b69f49",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "avRHLsmSizUhMe5j",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Preparing telegram message\n",
+        "height": 256,
+        "width": 368,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        -112
+      ],
+      "id": "29cc226a-f054-4fd1-81a5-d0649d42af29",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "batchSize": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2192,
+        -80
+      ],
+      "id": "c2fab46e-b3e9-435d-b1a1-1f3e89583414",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "chatId": "=6328242907",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2672,
+        -32
+      ],
+      "id": "797f01f6-64c9-4ed8-8728-609b93ec27e5",
+      "name": "Send a text message",
+      "webhookId": "5a76cfd1-9467-4807-86e4-990504cde48b",
+      "credentials": {
+        "telegramApi": {
+          "id": "qfnxPSVFWGdz088D",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Sending AI summary to user\n",
+        "height": 384,
+        "width": 720,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        -160
+      ],
+      "id": "33b8d401-7d18-425d-9e44-b9d05a3e7a49",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a3217802-bd6b-4206-8bc9-05831236cec9",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "6bdb29d7-8db0-4feb-bbc0-5d2c9e6fe415",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "dd914fc1-d530-45a9-ad94-055337dd20c4",
+              "name": "source",
+              "value": "={{ $json.source }}",
+              "type": "string"
+            },
+            {
+              "id": "fffb3e36-dd40-4fbe-84f5-8fa82d76fc4c",
+              "name": "job_id",
+              "value": "={{ $json.job_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d491eba8-3750-43f0-9f2b-bc2fe20537e0",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "445798b3-4741-4ed8-b878-5ed5302ddfd2",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "8056ed3f-d9a7-4bb8-ba54-a9e45f2aaecd",
+              "name": "cv_summary",
+              "value": "Software Engineer with experience in Python, SQL, data pipelines, and automation. Focused on backend systems and data engineering.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -16
+      ],
+      "id": "bfe0a80a-85ab-48dd-a489-3ae6fb71a0a4",
+      "name": "Selecting job info"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst parsedItems = items.map(item => {\n\n  const raw = item.json.content.parts[0].text;\n\n  const cleaned = raw\n    .replace(/```json/g, '')\n    .replace(/```/g, '')\n    .trim();\n\n  return {\n    json: JSON.parse(cleaned)\n  };\n});\n\nreturn parsedItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        -16
+      ],
+      "id": "8d0627fd-9926-48f9-bc2c-caccaa7739c5",
+      "name": "Parsing data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet message = `🚀 Jobs encontrados\\n\\n`;\n\nfor (const item of items) {\n\n  const job = item.json;\n\n  message +=\n`🏢 ${job.company}\n💼 ${job.title}\n⭐ Score: ${job.total_score}\n📊 Match: ${job.match_level}\n\n✅ Strengths:\n${job.strengths.map(s => `- ${s}`).join('\\n')}\n\n⚠️ Gaps:\n${job.gaps.map(g => `- ${g}`).join('\\n')}\n\n🎯 Recommendation: ${job.recommendation}\n\n----------------------------\n\n`;\n}\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        -32
+      ],
+      "id": "921ba4bd-872c-4c79-bb06-acac681ff1a6",
+      "name": "Preparing messaga for telegram"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "sD7JbkTic62IjIuC",
+          "mode": "list",
+          "cachedResultName": "jobs_scraped",
+          "cachedResultUrl": "/projects/Bzbv91LTO5oErG4D/datatables/sD7JbkTic62IjIuC"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "job_id",
+              "keyValue": "={{ $json.job_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        -16
+      ],
+      "id": "b59cb336-6a1a-454d-87a8-d3ab8c7d067b",
+      "name": "Jobs that does not exist in data table"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "sD7JbkTic62IjIuC",
+          "mode": "list",
+          "cachedResultName": "jobs_scraped",
+          "cachedResultUrl": "/projects/Bzbv91LTO5oErG4D/datatables/sD7JbkTic62IjIuC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "job_id": "={{ $json.job_id }}",
+            "job_title": "={{ $json.title }}",
+            "job_description": "={{ $json.description }}",
+            "job_source": "={{ $json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "job_title",
+              "displayName": "job_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "job_description",
+              "displayName": "job_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "job_source",
+              "displayName": "job_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        -384
+      ],
+      "id": "a4f7b01b-2cca-494c-9a44-8cafc83cbc20",
+      "name": "Inserting new jobs data"
+    },
+    {
+      "parameters": {
+        "content": "## Update data table\n",
+        "height": 256,
+        "width": 336,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        752,
+        -464
+      ],
+      "id": "555b3d9a-a593-4cf7-9c83-992eb3b1138a",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Data Engineer jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Automation Engineer jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Automation Engineer jobs": {
+      "main": [
+        [
+          {
+            "node": "Merging jobs data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Engineer jobs": {
+      "main": [
+        [
+          {
+            "node": "Merging jobs data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merging jobs data": {
+      "main": [
+        [
+          {
+            "node": "Cleaning job data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleaning job data": {
+      "main": [
+        [
+          {
+            "node": "Jobs that does not exist in data table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Parsing data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Preparing messaga for telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Selecting job info": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsing data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparing messaga for telegram": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jobs that does not exist in data table": {
+      "main": [
+        [
+          {
+            "node": "Selecting job info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Inserting new jobs data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0fe83e58-bce1-4e6a-b808-e4464037552d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "30cdbc91fff10d961854cbc087c3e832fbefe359b7ab4a21234db68f5fb08d83"
+  },
+  "id": "YYKBgm4bMVq427El",
+  "tags": []
+}
